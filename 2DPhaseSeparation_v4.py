@@ -48,7 +48,7 @@ tLength = 3
 c0 = 0.8 #Initial solvent concentration
 D = 1 #Diffusion constant
 B = 2*10 #Drift constants
-Evap = 0.0 #Evaporation Constant
+#Evap = 0.0 #Evaporation Constant !!Currently unused
 
 
 #%% Initialization
