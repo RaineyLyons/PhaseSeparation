@@ -122,7 +122,6 @@ def grad2D(F,dx,dy):
     return [Fx,Fy]
 
 def fftconvolve2d(x, y):
-    # This assumes y is "smaller" than x.
     f2 = ifft2(fft2(x, s =x.shape) * fft2(y, s =x.shape)).real
     f2 = np.roll(f2, (-((y.shape[0] - 1)//2), -((y.shape[1] - 1)//2)), axis=(0, 1))
     return f2
