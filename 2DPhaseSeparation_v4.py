@@ -39,7 +39,7 @@ from numpy.fft  import fft2, ifft2
 # Run on rectangle of dimensions [-xLength,xLength] X [-yLength,yLength] with NodeCount**2 number of Nodes.
 xLength = 10 
 yLength = 10
-NodeCount = 100
+NodeCount = 2**8
 
 #Final time
 tLength = 3
