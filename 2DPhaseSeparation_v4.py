@@ -141,50 +141,48 @@ def Calculate(m_old,p_old,x,y,t,flag):
     v_m = np.array([(p_old-m_old*m_old) * conv_Mat1[:,:] , (p_old-m_old**2) * conv_Mat2[:,:]])
     v_p = np.array([m_old*(1-p_old) * conv_Mat1[:,:],m_old*(1-p_old) * conv_Mat2[:,:]])
     
-    # The 'vectorize' version is currently bugged
-    # #Solve m and phi on interior of domain 
-    # Diffusion_m1 = gamma_x * (m_old[2:,1:-1] + m_old[:-2, 1:-1] -2*m_old[1:-1 ,1:-1]) + gamma_y * (m_old[1:-1,2:] + m_old[ 1:-1,:-2] -2*m_old[1:-1 ,1:-1])
-    # Advection_m1 =  Delta_t /(2*Delta_x) *B*(v_m[0,2:,1:-1] - v_m[0,:-2,1:-1]) + Delta_t /(2*Delta_y)*B*(v_m[1,1:-1,2:]-v_m[1,1:-1,:-2])
-    # m_new[1:-1,1:-1] = m_old[1:-1,1:-1] + Diffusion_m1 - Advection_m1
+    # #Solve m and phi on interior of domain
+    Diffusion_m1 = gamma_x * (m_old[2:,1:-1] + m_old[:-2, 1:-1] -2*m_old[1:-1 ,1:-1]) + gamma_y * (m_old[1:-1,2:] + m_old[ 1:-1,:-2] -2*m_old[1:-1 ,1:-1])
+    Advection_m1 =  Delta_t /(2*Delta_x) *B*(v_m[0,2:,1:-1] - v_m[0,:-2,1:-1]) + Delta_t /(2*Delta_y)*B*(v_m[1,1:-1,2:]-v_m[1,1:-1,:-2])
+    m_new[1:-1,1:-1] = m_old[1:-1,1:-1] + Diffusion_m1 - Advection_m1
     
-    # Diffusion_p1 = gamma_x * (p_old[2:,1:-1] + p_old[:-2, 1:-1] -2*p_old[1:-1 ,1:-1]) + gamma_y * (p_old[1:-1,2:] + p_old[ 1:-1,:-2] -2*p_old[1:-1 ,1:-1])
-    # Advection_p1 =  Delta_t /(2*Delta_x) *B*(v_p[0,2:,1:-1] - v_p[0,:-2,1:-1]) + Delta_t /(2*Delta_y)*B*(v_p[1,1:-1,2:]-v_p[1,1:-1,:-2])
-    # p_new[1:-1,1:-1] = p_old[1:-1,1:-1] + Diffusion_p1 - Advection_p1
+    Diffusion_p1 = gamma_x * (p_old[2:,1:-1] + p_old[:-2, 1:-1] -2*p_old[1:-1 ,1:-1]) + gamma_y * (p_old[1:-1,2:] + p_old[ 1:-1,:-2] -2*p_old[1:-1 ,1:-1])
+    Advection_p1 =  Delta_t /(2*Delta_x) *B*(v_p[0,2:,1:-1] - v_p[0,:-2,1:-1]) + Delta_t /(2*Delta_y)*B*(v_p[1,1:-1,2:]-v_p[1,1:-1,:-2])
+    p_new[1:-1,1:-1] = p_old[1:-1,1:-1] + Diffusion_p1 - Advection_p1
     
-    # mcalc = lambda i,j: m_old[i,j] + gamma_x * (m_old[i+1,j] + m_old[i-1,j] -2*m_old[i,j]) + gamma_y * (m_old[i,j+1] + m_old[i,j-1] -2*m_old[i,j]) - Delta_t /(2*Delta_x) *B*(v_m[0,i+1,j] - v_m[0,i-1,j]) + Delta_t /(2*Delta_y)*B*(v_m[1,i,j+1]-v_m[1,i,j-1])
-    # pcalc = lambda i,j: p_old[i,j] + gamma_x * (p_old[i+1,j] + p_old[i-1,j] -2*p_old[i,j]) + gamma_y * (p_old[i,j+1] + p_old[i,j-1] -2*p_old[i,j]) - Delta_t /(2*Delta_x) *B*(v_p[0,i+1,j] - v_p[0,i-1,j]) + Delta_t /(2*Delta_y)*B*(v_p[1,i,j+1]-v_p[1,i,j-1])
+    mcalc = lambda i,j: m_old[i,j] + gamma_x * (m_old[i+1,j] + m_old[i-1,j] -2*m_old[i,j]) + gamma_y * (m_old[i,j+1] + m_old[i,j-1] -2*m_old[i,j]) - Delta_t /(2*Delta_x) *B*(v_m[0,i+1,j] - v_m[0,i-1,j]) - Delta_t /(2*Delta_y)*B*(v_m[1,i,j+1]-v_m[1,i,j-1])
+    pcalc = lambda i,j: p_old[i,j] + gamma_x * (p_old[i+1,j] + p_old[i-1,j] -2*p_old[i,j]) + gamma_y * (p_old[i,j+1] + p_old[i,j-1] -2*p_old[i,j]) - Delta_t /(2*Delta_x) *B*(v_p[0,i+1,j] - v_p[0,i-1,j]) - Delta_t /(2*Delta_y)*B*(v_p[1,i,j+1]-v_p[1,i,j-1])
    
-    # #Periodic boundary conditions
-    # m_new[1:-1,-1] = m_old[1:-1,-1] + gamma_x * (m_old[2:,-1] + m_old[:-2, -1] -2*m_old[1:-1 ,-1]) + gamma_y * (m_old[1:-1,0] + m_old[ 1:-1,-2] -2*m_old[1:-1 ,-1]) - Delta_t /(2*Delta_x) *B*(v_m[0,2:,-1] - v_m[0,:-2,-1]) + Delta_t /(2*Delta_y)*B*(v_m[1,1:-1,0]-v_m[1,1:-1,-2])
-    # m_new[1:-1,0] = m_old[1:-1,0] + gamma_x * (m_old[2:,0] + m_old[:-2, 0] -2*m_old[1:-1 ,0]) + gamma_y * (m_old[1:-1,1] + m_old[ 1:-1,-1] -2*m_old[1:-1 ,0]) - Delta_t /(2*Delta_x) *B*(v_m[0,2:,0] - v_m[0,:-2,0]) + Delta_t /(2*Delta_y)*B*(v_m[1,1:-1,1]-v_m[1,1:-1,-1])
-    # m_new[0,1:-1] = m_old[0,1:-1] + gamma_x * (m_old[1,1:-1] + m_old[ -1,1:-1] -2*m_old[0,1:-1]) + gamma_y * (m_old[0,2:] + m_old[0,:-2] -2*m_old[0,1:-1]) - Delta_t /(2*Delta_x) *B*(v_m[0,0,2:] - v_m[0,0,:-2]) + Delta_t /(2*Delta_y)*B*(v_m[1,1,1:-1]-v_m[1,-1,1:-1])
-    # m_new[-1,1:-1] =m_old[-1,1:-1] + gamma_x * (m_old[0,1:-1] + m_old[-2, 1:-1] -2*m_old[-1,1:-1]) + gamma_y * (m_old[-1,2:] + m_old[ -1,:-2,] -2*m_old[-1,1:-1]) - Delta_t /(2*Delta_x) *B*(v_m[0,-1,2:] - v_m[0,-1,:-2]) + Delta_t /(2*Delta_y)*B*(v_m[1,0,1:-1]-v_m[1,-2,1:-1])
-    # m_new[0,0] = mcalc(0,0)
-    # m_new[-1,0] = mcalc(-1,0)
-    # m_new[-1,-1] = mcalc(-1,-1)
-    # m_new[0,-1] = mcalc(0,-1)
+    #Periodic boundary conditions
+    m_new[1:-1,-1] = m_old[1:-1,-1] + gamma_x * (m_old[2:,-1] + m_old[:-2, -1] -2*m_old[1:-1 ,-1]) + gamma_y * (m_old[1:-1,0] + m_old[ 1:-1,-2] -2*m_old[1:-1 ,-1]) - Delta_t /(2*Delta_x) *B*(v_m[0,2:,-1] - v_m[0,:-2,-1]) - Delta_t /(2*Delta_y)*B*(v_m[1,1:-1,0]-v_m[1,1:-1,-2])
+    m_new[1:-1,0] = m_old[1:-1,0] + gamma_x * (m_old[2:,0] + m_old[:-2, 0] -2*m_old[1:-1 ,0]) + gamma_y * (m_old[1:-1,1] + m_old[ 1:-1,-1] -2*m_old[1:-1 ,0]) - Delta_t /(2*Delta_x) *B*(v_m[0,2:,0] - v_m[0,:-2,0]) - Delta_t /(2*Delta_y)*B*(v_m[1,1:-1,1]-v_m[1,1:-1,-1])
+    m_new[0,1:-1] = m_old[0,1:-1] + gamma_x * (m_old[1,1:-1] + m_old[ -1,1:-1] -2*m_old[0,1:-1]) + gamma_y * (m_old[0,2:] + m_old[0,:-2] -2*m_old[0,1:-1]) - Delta_t /(2*Delta_x) *B*(v_m[0,0,2:] - v_m[0,0,:-2]) - Delta_t /(2*Delta_y)*B*(v_m[1,1,1:-1]-v_m[1,-1,1:-1])
+    m_new[-1,1:-1] =m_old[-1,1:-1] + gamma_x * (m_old[0,1:-1] + m_old[-2, 1:-1] -2*m_old[-1,1:-1]) + gamma_y * (m_old[-1,2:] + m_old[ -1,:-2,] -2*m_old[-1,1:-1]) - Delta_t /(2*Delta_x) *B*(v_m[0,-1,2:] - v_m[0,-1,:-2]) - Delta_t /(2*Delta_y)*B*(v_m[1,0,1:-1]-v_m[1,-2,1:-1])
+    m_new[0,0] = mcalc(0,0)
+    m_new[-1,0] = mcalc(-1,0)
+    m_new[-1,-1] = mcalc(-1,-1)
+    m_new[0,-1] = mcalc(0,-1)
     
-    # p_new[1:-1,-1] = p_old[1:-1,-1] + gamma_x * (p_old[2:,-1] + p_old[:-2, -1] -2*p_old[1:-1 ,-1]) + gamma_y * (p_old[1:-1,0] + p_old[ 1:-1,-2] -2*p_old[1:-1 ,-1]) - Delta_t /(2*Delta_x) *B*(v_p[0,2:,-1] - v_p[0,:-2,-1]) + Delta_t /(2*Delta_y)*B*(v_p[1,1:-1,0]-v_p[1,1:-1,-2])
-    # p_new[1:-1,0] = p_old[1:-1,0] + gamma_x * (p_old[2:,0] + p_old[:-2, 0] -2*p_old[1:-1 ,0]) + gamma_y * (p_old[1:-1,1] + p_old[ 1:-1,-1] -2*p_old[1:-1 ,0]) - Delta_t /(2*Delta_x) *B*(v_p[0,2:,0] - v_p[0,:-2,0]) + Delta_t /(2*Delta_y)*B*(v_p[1,1:-1,1]-v_p[1,1:-1,-1])
-    # p_new[0,1:-1] = p_old[0,1:-1] + gamma_x * (p_old[1,1:-1] + p_old[ -1,1:-1] -2*p_old[0,1:-1]) + gamma_y * (p_old[0,2:] + p_old[0,:-2] -2*p_old[0,1:-1]) - Delta_t /(2*Delta_x) *B*(v_p[0,0,2:] - v_p[0,0,:-2]) + Delta_t /(2*Delta_y)*B*(v_p[1,1,1:-1]-v_p[1,-1,1:-1])
-    # p_new[-1,1:-1] =p_old[-1,1:-1] + gamma_x * (p_old[0,1:-1] + p_old[-2, 1:-1] -2*p_old[-1,1:-1]) + gamma_y * (p_old[-1,2:] + p_old[ -1,:-2,] -2*p_old[-1,1:-1]) - Delta_t /(2*Delta_x) *B*(v_p[0,-1,2:] - v_p[0,-1,:-2]) + Delta_t /(2*Delta_y)*B*(v_p[1,0,1:-1]-v_p[1,-2,1:-1])
-    # p_new[0,0] = pcalc(0,0)
-    # p_new[-1,0] = pcalc(-1,0)
-    # p_new[-1,-1] = pcalc(-1,-1)
-    # p_new[0,-1] = pcalc(0,-1)
-    # p_new = p_new + Delta_t*Evap*(1-p_old)
+    p_new[1:-1,-1] = p_old[1:-1,-1] + gamma_x * (p_old[2:,-1] + p_old[:-2, -1] -2*p_old[1:-1 ,-1]) + gamma_y * (p_old[1:-1,0] + p_old[ 1:-1,-2] -2*p_old[1:-1 ,-1]) - Delta_t /(2*Delta_x) *B*(v_p[0,2:,-1] - v_p[0,:-2,-1]) - Delta_t /(2*Delta_y)*B*(v_p[1,1:-1,0]-v_p[1,1:-1,-2])
+    p_new[1:-1,0] = p_old[1:-1,0] + gamma_x * (p_old[2:,0] + p_old[:-2, 0] -2*p_old[1:-1 ,0]) + gamma_y * (p_old[1:-1,1] + p_old[ 1:-1,-1] -2*p_old[1:-1 ,0]) - Delta_t /(2*Delta_x) *B*(v_p[0,2:,0] - v_p[0,:-2,0]) - Delta_t /(2*Delta_y)*B*(v_p[1,1:-1,1]-v_p[1,1:-1,-1])
+    p_new[0,1:-1] = p_old[0,1:-1] + gamma_x * (p_old[1,1:-1] + p_old[ -1,1:-1] -2*p_old[0,1:-1]) + gamma_y * (p_old[0,2:] + p_old[0,:-2] -2*p_old[0,1:-1]) - Delta_t /(2*Delta_x) *B*(v_p[0,0,2:] - v_p[0,0,:-2]) - Delta_t /(2*Delta_y)*B*(v_p[1,1,1:-1]-v_p[1,-1,1:-1])
+    p_new[-1,1:-1] =p_old[-1,1:-1] + gamma_x * (p_old[0,1:-1] + p_old[-2, 1:-1] -2*p_old[-1,1:-1]) + gamma_y * (p_old[-1,2:] + p_old[ -1,:-2,] -2*p_old[-1,1:-1]) - Delta_t /(2*Delta_x) *B*(v_p[0,-1,2:] - v_p[0,-1,:-2]) - Delta_t /(2*Delta_y)*B*(v_p[1,0,1:-1]-v_p[1,-2,1:-1])
+    p_new[0,0] = pcalc(0,0)
+    p_new[-1,0] = pcalc(-1,0)
+    p_new[-1,-1] = pcalc(-1,-1)
+    p_new[0,-1] = pcalc(0,-1)
+    p_new = p_new + Delta_t*Evap*(1-p_old)
     
-    for i in range(-1,np.size(x)-1):
-        for j in range(-1, np.size(y)-1):
-            Diffusion_m = gamma_x * (m_old[i+1][j] + m_old[i-1][j]  - 2*m_old[i][j]) + gamma_y *(m_old[i][j+1] + m_old[i][j-1] - 2*m_old[i][j])
-            Diffusion_p = gamma_x * (p_old[i+1][j] + p_old[i-1][j]  - 2*p_old[i][j]) + gamma_y *(p_old[i][j+1] + p_old[i][j-1] - 2*p_old[i][j])
-            Advection_m = Delta_t /(2*Delta_x) *B*(v_m[0,i+1,j] - v_m[0,i-1,j]) + Delta_t /(2*Delta_y)*B*(v_m[1,i,j+1]-v_m[1,i,j-1])
-            Advection_p = Delta_t /(2*Delta_x) *B*(v_p[0,i+1,j] - v_p[0,i-1,j]) + Delta_t /(2*Delta_y)*B*(v_p[1,i,j+1]-v_p[1,i,j-1])
-            Evap_Term = Delta_t*Evap*(1-p_old[i][j])
+    # for i in range(-1,np.size(x)-1):
+    #     for j in range(-1, np.size(y)-1):
+    #         Diffusion_m = gamma_x * (m_old[i+1][j] + m_old[i-1][j]  - 2*m_old[i][j]) + gamma_y *(m_old[i][j+1] + m_old[i][j-1] - 2*m_old[i][j])
+    #         Diffusion_p = gamma_x * (p_old[i+1][j] + p_old[i-1][j]  - 2*p_old[i][j]) + gamma_y *(p_old[i][j+1] + p_old[i][j-1] - 2*p_old[i][j])
+    #         Advection_m = Delta_t /(2*Delta_x) *B*(v_m[0,i+1,j] - v_m[0,i-1,j]) + Delta_t /(2*Delta_y)*B*(v_m[1,i,j+1]-v_m[1,i,j-1])
+    #         Advection_p = Delta_t /(2*Delta_x) *B*(v_p[0,i+1,j] - v_p[0,i-1,j]) + Delta_t /(2*Delta_y)*B*(v_p[1,i,j+1]-v_p[1,i,j-1])
+    #         Evap_Term = Delta_t*Evap*(1-p_old[i][j])
                 
-            m_new[i, j] =  m_old[i][j] + Diffusion_m - Advection_m
-            p_new[i,j] = p_old[i,j] + Diffusion_p -Advection_p + Evap_Term
-    
+    #         m_new[i, j] =  m_old[i][j] + Diffusion_m - Advection_m
+    #         p_new[i,
     
     if not flag%1000:
         m[round(flag/1000)] = m_new
