@@ -48,7 +48,7 @@ tLength = 3
 c0 = 0.8 #Initial solvent concentration
 D = 1 #Diffusion constant
 B = 2*10 #Drift constants
-#Evap = 0.0 #Evaporation Constant !!Currently unused
+Evap = 0.0 #Evaporation Constant 
 
 
 #%% Initialization
@@ -60,7 +60,7 @@ Con = str(c0).replace('.','')
 
 Delta_x = 2*xLength/NodeCount
 Delta_y = 2*yLength/NodeCount
-Delta_t = Delta_x*Delta_y/(4*B*D) #Calculated based on very course CFL
+Delta_t = Delta_x*Delta_y/(4*B*D*Evap) #Calculated based on very course CFL
 gamma_x = (D * Delta_t) / (Delta_x ** 2)
 gamma_y = (D * Delta_t) / (Delta_y ** 2)
 
